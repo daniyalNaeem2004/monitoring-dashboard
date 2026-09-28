@@ -1,6 +1,6 @@
 import datetime as dt
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class EventIn(BaseModel):
@@ -23,8 +23,12 @@ class IngestResponse(BaseModel):
 
 
 class ServiceOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    """Current status plus the numbers that produced it, computed live from
+    recent events on every request (not read from a stale column)."""
 
     name: str
     status: str
     last_heartbeat: dt.datetime
+    error_rate: float
+    p95_latency_ms: float | None
+    seconds_since_heartbeat: float

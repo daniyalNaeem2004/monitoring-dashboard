@@ -25,5 +25,6 @@ CLASSIFICATION_WINDOW_SECONDS = 60
 FAILING_ERROR_RATE_THRESHOLD = 0.20  # >20% error rate in window => failing
 FAILING_HEARTBEAT_TIMEOUT_SECONDS = 30  # no events for 30s => failing
 SLOW_P95_LATENCY_MS = 500  # p95 latency above this => slow
+ERROR_STATUS_CODE_MIN = 500  # only 5xx counts as an "error" for error-rate purposes (a 404 is a client mistake, not a service failure)
 
 ANOMALY_ZSCORE_THRESHOLD = 3.0  # flag when metric exceeds baseline mean + 3 * stddev
