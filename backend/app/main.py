@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from app.database import Base, engine
-from app.routes import ingest, services
+from app.routes import anomalies, ingest, services
 
 app = FastAPI(title="Monitoring Dashboard API")
 
@@ -11,6 +11,7 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(ingest.router)
 app.include_router(services.router)
+app.include_router(anomalies.router)
 
 
 @app.get("/health")

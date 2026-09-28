@@ -28,3 +28,9 @@ SLOW_P95_LATENCY_MS = 500  # p95 latency above this => slow
 ERROR_STATUS_CODE_MIN = 500  # only 5xx counts as an "error" for error-rate purposes (a 404 is a client mistake, not a service failure)
 
 ANOMALY_ZSCORE_THRESHOLD = 3.0  # flag when metric exceeds baseline mean + 3 * stddev
+ANOMALY_CURRENT_WINDOW_SECONDS = 30  # "now" window compared against the baseline
+ANOMALY_BASELINE_WINDOW_SECONDS = 600  # 10 minutes of history feeds the baseline
+ANOMALY_BASELINE_BUCKET_SECONDS = 30  # baseline is sliced into windows this wide (same size as the current window) so mean/stddev describe per-window values, not raw events
+ANOMALY_MIN_BASELINE_BUCKETS = 5  # require at least this many non-empty baseline buckets before trusting mean/stddev
+ANOMALY_LATENCY_SIGMA_FLOOR_MS = 10.0  # stddev floor so a near-zero-variance baseline doesn't trip on tiny latency noise
+ANOMALY_ERROR_RATE_SIGMA_FLOOR = 0.01  # stddev floor so an all-zero error-rate baseline doesn't trip on a single error

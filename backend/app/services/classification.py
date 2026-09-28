@@ -16,6 +16,7 @@ from app.config import (
     FAILING_HEARTBEAT_TIMEOUT_SECONDS,
     SLOW_P95_LATENCY_MS,
 )
+from app.services.stats import percentile
 
 STATUS_HEALTHY = "healthy"
 STATUS_SLOW = "slow"
@@ -36,13 +37,6 @@ class ClassificationResult:
     seconds_since_heartbeat: float
 
 
-def _percentile(values: list[float], pct: float) -> float:
-    ordered = sorted(values)
-    idx = math.ceil(pct * len(ordered)) - 1
-    idx = max(0, min(idx, len(ordered) - 1))
-    return ordered[idx]
-
-
 def classify_service(
     events: Sequence[MetricPoint],
     last_heartbeat: datetime | None,
@@ -53,7 +47,7 @@ def classify_service(
 
     error_count = sum(1 for e in windowed if e.status_code >= ERROR_STATUS_CODE_MIN)
     error_rate = (error_count / len(windowed)) if windowed else 0.0
-    p95_latency_ms = _percentile([e.latency_ms for e in windowed], 0.95) if windowed else None
+    p95_latency_ms = percentile([e.latency_ms for e in windowed], 0.95) if windowed else None
 
     # No heartbeat ever recorded is treated as infinitely stale, so it always
     # trips the timeout check below rather than needing a separate branch.

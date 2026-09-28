@@ -59,16 +59,21 @@ class LogEntry(Base):
 
 
 class Anomaly(Base):
-    """A flagged deviation from baseline (step 4). Table exists now so
-    ingest/services code can share the schema; nothing writes to it yet."""
+    """One row per ongoing incident, not per detection tick: while a
+    (service, metric) pair keeps failing its z-score check, later ticks
+    update this same row's value/z_score instead of inserting a new one.
+    `resolved_at` is set the first tick the check comes back clean."""
 
     __tablename__ = "anomalies"
+    __table_args__ = (Index("ix_anomalies_service_metric_open", "service_id", "metric", "resolved_at"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     service_id: Mapped[int] = mapped_column(ForeignKey("services.id"))
     metric: Mapped[str] = mapped_column(String(50))  # e.g. "latency_p95", "error_rate"
     value: Mapped[float] = mapped_column(Float)
-    baseline: Mapped[float] = mapped_column(Float)
-    detected_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    baseline_mean: Mapped[float] = mapped_column(Float)
+    z_score: Mapped[float] = mapped_column(Float)
+    started_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    resolved_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
 
     service: Mapped["Service"] = relationship(back_populates="anomalies")

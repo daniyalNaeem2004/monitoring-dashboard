@@ -32,3 +32,15 @@ class ServiceOut(BaseModel):
     error_rate: float
     p95_latency_ms: float | None
     seconds_since_heartbeat: float
+
+
+class AnomalyOut(BaseModel):
+    """One ongoing or past incident. `resolved_at` is None while it's still open."""
+
+    service: str
+    metric: str
+    value: float
+    baseline_mean: float
+    z_score: float
+    started_at: dt.datetime
+    resolved_at: dt.datetime | None
