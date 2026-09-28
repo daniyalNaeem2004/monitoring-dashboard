@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.config import CLASSIFICATION_WINDOW_SECONDS
+from app.config import CLASSIFICATION_WINDOW_SECONDS, DEFAULT_METRICS_RANGE_SECONDS
 from app.database import get_db
 from app.models import Metric, Service
-from app.schemas import ServiceOut
+from app.schemas import MetricPointOut, ServiceOut
 from app.services.classification import MetricPoint, classify_service
 
 router = APIRouter()
@@ -42,3 +42,23 @@ def list_services(db: Session = Depends(get_db)) -> list[ServiceOut]:
         )
 
     return out
+
+
+@router.get("/services/{name}/metrics", response_model=list[MetricPointOut])
+def get_service_metrics(
+    name: str,
+    range_seconds: int = Query(DEFAULT_METRICS_RANGE_SECONDS, alias="range", gt=0),
+    db: Session = Depends(get_db),
+) -> list[MetricPointOut]:
+    service = db.execute(select(Service).where(Service.name == name)).scalar_one_or_none()
+    if service is None:
+        raise HTTPException(status_code=404, detail=f"Unknown service: {name}")
+
+    window_start = datetime.now(timezone.utc) - timedelta(seconds=range_seconds)
+    rows = db.execute(
+        select(Metric.timestamp, Metric.latency_ms, Metric.status_code)
+        .where(Metric.service_id == service.id, Metric.timestamp >= window_start)
+        .order_by(Metric.timestamp)
+    ).all()
+
+    return [MetricPointOut(timestamp=r.timestamp, latency_ms=r.latency_ms, status_code=r.status_code) for r in rows]

@@ -34,3 +34,12 @@ ANOMALY_BASELINE_BUCKET_SECONDS = 30  # baseline is sliced into windows this wid
 ANOMALY_MIN_BASELINE_BUCKETS = 5  # require at least this many non-empty baseline buckets before trusting mean/stddev
 ANOMALY_LATENCY_SIGMA_FLOOR_MS = 10.0  # stddev floor so a near-zero-variance baseline doesn't trip on tiny latency noise
 ANOMALY_ERROR_RATE_SIGMA_FLOOR = 0.01  # stddev floor so an all-zero error-rate baseline doesn't trip on a single error
+
+# --- Read API defaults ---
+DEFAULT_METRICS_RANGE_SECONDS = 300  # GET /services/{name}/metrics default lookback
+DEFAULT_LOGS_LIMIT = 50  # GET /logs default row count
+MAX_LOGS_LIMIT = 500
+
+# --- CORS ---
+# Portfolio project, no auth/cookies in play, so a wide-open dev origin list is fine.
+CORS_ALLOW_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]

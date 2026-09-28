@@ -34,6 +34,21 @@ class ServiceOut(BaseModel):
     seconds_since_heartbeat: float
 
 
+class MetricPointOut(BaseModel):
+    """One raw latency/status-code data point, for the per-service latency chart."""
+
+    timestamp: dt.datetime
+    latency_ms: float
+    status_code: int
+
+
+class LogEntryOut(BaseModel):
+    service: str
+    timestamp: dt.datetime
+    level: str
+    message: str
+
+
 class AnomalyOut(BaseModel):
     """One ongoing or past incident. `resolved_at` is None while it's still open."""
 
