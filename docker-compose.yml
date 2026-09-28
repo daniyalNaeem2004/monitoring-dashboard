@@ -16,5 +16,41 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    # DB host is the `db` service name on the compose network, not localhost
+    # (which is what the root .env's DATABASE_URL points at for host tooling
+    # like running alembic or pytest outside Docker).
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Vite bakes this into the JS bundle at build time, so it must be the
+        # URL the *browser* can reach, i.e. the published host port below,
+        # not the internal compose service name.
+        VITE_API_BASE_URL: http://localhost:8000
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  simulator:
+    build: ./simulator
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+
 volumes:
   pgdata:
